@@ -3,5 +3,34 @@
 }
 
 .artistField{
-    width: 90%;
+    width: 50%;
+}
+
+
+.albums {
+    /*  #6c757d */
+    background-color: #343a40;
+    width: 50%;
+    margin: 0 auto;
+    border-radius: 1rem;
+}
+
+.albums:hover {
+    background-color: #495057;
+}
+
+.album-description {
+    color: #c1c1c1 !important;
+}
+
+@media (min-width: 1200px) {
+    .responsive-font-example {
+      font-size: 1.24rem;
+    }
+}
+  
+ @media (max-width: 600px) {
+    .responsive-font-example {
+      font-size: .75rem;
+    }
 }

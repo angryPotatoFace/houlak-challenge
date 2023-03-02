@@ -1,8 +1,10 @@
 /* eslint-disable jsx-a11y/alt-text */
-import { useEffect , useState } from 'react';
+import { useState } from 'react';
 import './App.css'
 import { Formik, Field, Form, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
+import moment from 'moment';
+import { getArtist, getAlbums } from '../services/api';
 
 function App() {
 
@@ -17,20 +19,20 @@ function App() {
       .required('Required'),
   });
 
-  const [artist, setArtist] = useState();
-  const [albums, setAlbums] = useState(Array<{ }>); 
-  const [areInfo, setareInfo] = useState(false);
+  const [artista , setArtista ] = useState({ id: '' });
+  const [albums, setAlbums] = useState([]); 
 
   return (
     <div className="App container mt-3 badge bg-secondary">
 
       {/* ----------------------- HEADER ----------------------------------- */}
-      <header className="App-header p-5 text-white">
+      <header className="App-header p-5 text-white container">
             <h1 className='fw-bold' > Houlak - Challenge </h1>
-            <p className='fs-6 pt-3'> This is applicaction that connect with the api of Spotify and you can have information about your favorites artists.</p>
+            <p className='fs-6 pt-3' > This is applicaction that connect with the api of Spotify and you can have information about your favorites artists.</p>
       </header>
 
       {/* --------------------------- FORM ------------------------- */}
+
 
       <div>
       <h3 className='fw-bold'> Spotify API </h3>
@@ -40,32 +42,21 @@ function App() {
       <Formik
         initialValues={ { artist: ''} }
         validationSchema ={ SignupSchema }
-        onSubmit={(
-          values: Values,
-          { setSubmitting }: FormikHelpers<Values>
-        ) => {
-          const { artist } = values;
-          
-          fetch('http://localhost:8888/api/v1/getAlbums/2AZOALDIBORfbzKTuliwdJ/10')
-          .then( resp => resp.json()) 
-          .then( data => {
+        onSubmit={ async ( values: Values, )=> {
+            const data = await getArtist( values.artist );
+            console.log( data );
+            const info = await getAlbums( data.id, 50);
+            setArtista( data );
+            setAlbums ( info );
+          }
+        }
 
-              console.log(data.items);
-              // setAlbums( (p) => [..p, {data.items}]);
-              console.log(albums);
-              setareInfo(true);
-          })
-          .catch( e => console.log(e));
-
-          alert( JSON.stringify(values, null , 2) );
-          setSubmitting(false);
-        }}
       >
       { ( { errors, touched } ) => (
          <Form className=''>
           
          <div className='pt-3'>
-           <Field className='p-2 rounded artistField' 
+           <Field className='p-2 rounded artistField text-center' 
                   id="firstName" 
                   name="artist" 
                   placeholder="Insert your favorite Artist" 
@@ -83,26 +74,48 @@ function App() {
       
       </Formik>
     </div>
-
-
+  
     {/* --------------------------- ARTISTA ------------------------- */}
           
 
     <div className='mt-5'>
           <h3> Lista </h3>
           {
-            areInfo && albums.map( (disc: any) => {
-              return(
-                <div>
-                  <img src={ disc[0].url } height={ disc[0].height} width={disc[0].width} />
-                  <p>{ disc.name}</p>
-                  <p>{ disc.release_date }</p>
-                  <p>{ disc.type }</p>
-                </div>
-              )
+            albums.length ? 
+            albums.map( (alb: any, index) => {
+                if( alb.album_group === 'album' ){
+                  return(
+                    <div className='albums' key={ index }> 
+                    
+                      <div className='d-flex flex-column bd-highlight mb-3 justify-content-center '>
+    
+                          <div className='p-2 pt-4 container'>
+                            <a className='text' href={ alb.external_urls.spotify } target='_blank' rel="noreferrer" >
+                              <img src={ alb.images[1].url } height={ alb.images[1].height} width={ alb.images[1].width} />
+                            </a>
+                          </div>
+    
+                          <div className='p-2 container'>
+                            <h5 className='fw-bold responsive-font-example' >{ alb.name}</h5>
+                            <p className='album-description'>
+                              <span className='text-capitalize'> { alb.type } </span>
+                                 •
+                              <span className='text-capitalize' >  { moment( alb.release_date ).format(" MMMM YYYY ")  } </span>
+                                •
+                              <span className='text-capitalize'> { alb.total_tracks } Tracks </span>
+                            </p>
+                          </div>
+                   
+                      </div>
+    
+                    </div>
+                  )
+                }
             })
+            :
+            <div> Todavia no hay artistas </div>
           }
-    </div>
+    </div> 
 
     {/* --------------------------- FOOTER ------------------------- */}
     <footer className='pb-3 pt-5'> 

@@ -39,6 +39,7 @@ export default class Controller{
     searchArtist = async ( req , res ) =>{  
         const { access_token } = await this.api.getToken();
         const apiUrl = this.api_url + '/search?';
+        console.log( req.body );
         const params = querystring.stringify( req.body );
         const method = Methods.GET;
         const url = apiUrl + params;
@@ -49,7 +50,6 @@ export default class Controller{
 
         
         const queryRequest = this.api.getFormatRequest( method,url,header )
-        console.log(queryRequest);
         try {
             const data = await this.api.doRequest( queryRequest);
             res.json(data);
