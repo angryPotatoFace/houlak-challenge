@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import config from '../../config';
 import request from 'request';
+import Methods from '../controller/methods';
 
 export default class api {
     client_id: string
@@ -12,10 +13,9 @@ export default class api {
     }
 
     async getToken(){
-
-        const method = 'POST'
+        const method = Methods.POST
         const url = 'https://accounts.spotify.com/api/token'
-        const header = { 'Authorization': 'Basic ' + (new Buffer(this.client_id + ':' + this.client_secret).toString('base64')) }
+        const header = { 'Authorization': 'Basic ' + ( Buffer.from(this.client_id + ':' + this.client_secret).toString('base64')) }
         const form = { grant_type: 'client_credentials' }
         const formatRequest = this.getFormatRequest(method,url,header,form );
         
@@ -27,11 +27,10 @@ export default class api {
         }
     }
 
-    doRequest( url) {
+    doRequest(url) {
         return new Promise(function (resolve, reject) {
           request(url, function (error, res, body) {
             if (!error && res.statusCode === 200) {
-                console.log(body);
               resolve(body);
             } else {
               reject(error);

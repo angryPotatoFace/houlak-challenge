@@ -12,7 +12,9 @@ const { PORT, BASE }  = config;
 app.use( express.json() );
 
 app.use(express.static(__dirname + '/public'))
-   .use(cors())
+   .use(cors({
+      origin: 'http://localhost:3000'
+   }))
    .use(cookieParser());
 
 app.get('/', (req, res) => res.send("*********** SERVIDOR INICIADO **************"));

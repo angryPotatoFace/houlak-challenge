@@ -1,6 +1,7 @@
 import querystring from 'querystring';
 import config from '../../config';
 import Api from '../api/api';
+import Methods  from './methods';
 
 export default class Controller{
     
@@ -9,6 +10,7 @@ export default class Controller{
     private redirect_uri: string
     private stateKey: string
     private api: Api
+    private api_url: string
   
     constructor(){
         this.client_id = config.CLIENT_ID;
@@ -16,6 +18,7 @@ export default class Controller{
         this.redirect_uri = config.REDIRECT_URI;
         this.stateKey = 'spotify_auth_state';
         this.api = new Api();
+        this.api_url = config.API_URL;
     }
 
 
@@ -35,10 +38,31 @@ export default class Controller{
 
     searchArtist = async ( req , res ) =>{  
         const { access_token } = await this.api.getToken();
-        const apiUrl = 'https://api.spotify.com/v1/search?';
+        const apiUrl = this.api_url + '/search?';
         const params = querystring.stringify( req.body );
-        const method = 'GET';
+        const method = Methods.GET;
         const url = apiUrl + params;
+        const header = { 
+            'Authorization': ' Bearer ' + access_token,
+            'Content-Type': 'application/json'
+        }
+
+        
+        const queryRequest = this.api.getFormatRequest( method,url,header )
+        console.log(queryRequest);
+        try {
+            const data = await this.api.doRequest( queryRequest);
+            res.json(data);
+        }catch( e){
+            res.json(e);
+        }
+    }
+
+    getAlbums = async ( req , res ) =>{  
+        const { access_token } = await this.api.getToken();
+        const { id , limit } = req.params;
+        const url = this.api_url + `/artists/${id}/albums?market=AR&limit=${limit}`;
+        const method = Methods.GET
         const header = { 
             'Authorization': ' Bearer ' + access_token,
             'Content-Type': 'application/json'
