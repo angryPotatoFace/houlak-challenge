@@ -19,6 +19,7 @@ export default class RouterApp {
 
         // POST
             this.router.post('/searchArtist', this.controller.searchArtist );
+            this.router.post('/getIdAlbumsByPopularity', this.controller.getIdAlbumsByPopularity );
 
         // PUT 
 

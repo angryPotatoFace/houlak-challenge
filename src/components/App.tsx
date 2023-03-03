@@ -4,7 +4,7 @@ import './App.css'
 import { Formik, Field, Form, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import moment from 'moment';
-import { getArtist, getAlbums } from '../services/api';
+import { getArtist, getAlbums, getIdsAlbumsByPopularity } from '../services/api';
 
 function App() {
 
@@ -21,6 +21,22 @@ function App() {
 
   const [artista , setArtista ] = useState({ id: '' });
   const [albums, setAlbums] = useState([]); 
+
+  function sortByPopularity( idsPopularity: any, albCollection: any) {
+    const result = []
+    for (let i = 0; i < idsPopularity.length ; i++) {
+      let j = 0, pude= false;
+      
+      while( j < albCollection.length && !pude ) {
+          if( idsPopularity[i].id === albCollection[j].id ) {
+              result.push( {...albCollection[j], popularity: idsPopularity[i].popularity } );
+              pude = true;
+          }
+          j++;
+      }
+    }
+    return result;
+  }
 
   return (
     <div className="App container mt-3 badge bg-secondary">
@@ -43,11 +59,15 @@ function App() {
         initialValues={ { artist: ''} }
         validationSchema ={ SignupSchema }
         onSubmit={ async ( values: Values, )=> {
+
             const data = await getArtist( values.artist );
-            console.log( data );
-            const info = await getAlbums( data.id, 50);
+            const albums = await getAlbums( data.id, 50);
+            const ids = albums.map( (a: any) =>  a.id );
+            const idsPopularity = await getIdsAlbumsByPopularity(ids);
+            const sortData: any = sortByPopularity(idsPopularity, albums);
+        
             setArtista( data );
-            setAlbums ( info );
+            setAlbums ( sortData );
           }
         }
 

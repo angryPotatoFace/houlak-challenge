@@ -36,10 +36,10 @@ export default class Controller{
           }));
     };
 
-    searchArtist = async ( req , res ) =>{  
+    searchArtist = async ( req , res ) =>{ 
+
         const { access_token } = await this.api.getToken();
         const apiUrl = this.api_url + '/search?';
-        console.log( req.body );
         const params = querystring.stringify( req.body );
         const method = Methods.GET;
         const url = apiUrl + params;
@@ -47,7 +47,6 @@ export default class Controller{
             'Authorization': ' Bearer ' + access_token,
             'Content-Type': 'application/json'
         }
-
         
         const queryRequest = this.api.getFormatRequest( method,url,header )
         try {
@@ -85,5 +84,29 @@ export default class Controller{
             res.json( e )
         }
     }
-}
 
+    getIdAlbumsByPopularity = async (req, res) => {
+        const arr = req.body;
+        const { access_token } = await this.api.getToken()
+        const method = Methods.GET
+        const header = { 
+        'Authorization': ' Bearer ' + access_token,
+        'Content-Type': 'application/json'
+        }
+    
+        const querys = arr.map( (id: string) => this.api.getFormatRequest( method, ( this.api_url + `/albums/${id}`),header ))
+
+        try{
+
+            const dataComplete = querys.map( async( query: any ) => await this.api.doRequest(query) );
+            const resp = await Promise.all(dataComplete);
+            const data = resp.map( ({id, popularity}: any) => ({ id, popularity }) ); 
+            const orderedData = data.sort( (a , b) => b.popularity - a.popularity );
+            res.json(orderedData);
+        }catch( e) {
+            res.json(e);
+        }
+        
+      
+    }
+}
