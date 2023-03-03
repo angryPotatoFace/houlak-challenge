@@ -2,62 +2,44 @@ import querystring from 'querystring';
 import config from '../../config';
 import Api from '../api/api';
 import Methods  from './methods';
+import { Request , Response } from 'express';
 
 export default class Controller{
     
-    private client_id: string
-    private client_secret: string
-    private redirect_uri: string
-    private stateKey: string
     private api: Api
     private api_url: string
   
     constructor(){
-        this.client_id = config.CLIENT_ID;
-        this.client_secret = config.CLIENT_SECRET;
-        this.redirect_uri = config.REDIRECT_URI;
-        this.stateKey = 'spotify_auth_state';
         this.api = new Api();
         this.api_url = config.API_URL;
     }
 
-
-    login = ( req, res) => {
-        const state = this.api.generateRandomString(16);
-        res.cookie(this.stateKey, state);
-        const scope = 'user-read-private user-read-email';
-        res.redirect('https://accounts.spotify.com/authorize?' +
-          querystring.stringify({
-            response_type: 'code',
-            client_id: this.client_id,
-            scope: scope,
-            redirect_uri: this.redirect_uri,
-            state: state
-          }));
-    };
-
-    searchArtist = async ( req , res ) =>{ 
+    searchArtist = async (req: Request , res: Response ) =>{ 
 
         const { access_token } = await this.api.getToken();
-        const apiUrl = this.api_url + '/search?';
-        const params = querystring.stringify( req.body );
-        const method = Methods.GET;
-        const url = apiUrl + params;
+        const apiUrl: string = this.api_url + '/search?';
+        const params:string = querystring.stringify( req.body );
+        const method:string = Methods.GET;
+        const url: string = apiUrl + params;
         const header = { 
             'Authorization': ' Bearer ' + access_token,
             'Content-Type': 'application/json'
         }
         
-        const queryRequest = this.api.getFormatRequest( method,url,header )
+        const queryRequest = this.api.getFormatRequest( method, url, header )
+
         try {
             const data = await this.api.doRequest( queryRequest);
+            const ip = String( req.ip || req.ips || req.connection.remoteAddress );
+            await this.api.saveRequest(ip , req.body.q);
             res.json(data);
         }catch( e){
             res.json(e);
         }
     }
 
-    getAlbums = async ( req , res ) =>{  
+    getAlbums = async (req: Request , res: Response ) =>{  
+
         const { access_token } = await this.api.getToken();
         const { id , limit } = req.params;
         const url = this.api_url + `/artists/${id}/albums?market=AR&limit=${limit}`;
@@ -76,7 +58,7 @@ export default class Controller{
         }
     }
 
-    getToken = async (req ,res ) => { 
+    getToken = async (req: Request , res: Response ) => { 
         try{
             const response = await this.api.getToken();
             res.json( response);
@@ -85,7 +67,7 @@ export default class Controller{
         }
     }
 
-    getIdAlbumsByPopularity = async (req, res) => {
+    getIdAlbumsByPopularity = async (req: Request , res: Response ) => {
         const arr = req.body;
         const { access_token } = await this.api.getToken()
         const method = Methods.GET
@@ -97,16 +79,21 @@ export default class Controller{
         const querys = arr.map( (id: string) => this.api.getFormatRequest( method, ( this.api_url + `/albums/${id}`),header ))
 
         try{
-
             const dataComplete = querys.map( async( query: any ) => await this.api.doRequest(query) );
             const resp = await Promise.all(dataComplete);
-            const data = resp.map( ({id, popularity}: any) => ({ id, popularity }) ); 
-            const orderedData = data.sort( (a , b) => b.popularity - a.popularity );
+            const orderedData = resp.sort( (a , b) => b.popularity - a.popularity );
             res.json(orderedData);
         }catch( e) {
             res.json(e);
         }
-        
-      
+    }
+
+    getHistorical = async (req: Request , res: Response ) => {
+        try{
+            const resp = await this.api.getHistorical();
+            res.json(resp);
+        }catch(e){
+            res.json(e) ;
+        }  
     }
 }

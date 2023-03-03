@@ -2,14 +2,17 @@
 import config from '../../config';
 import request from 'request';
 import Methods from '../controller/methods';
+import Factory from '../model/DAO/factory';
 
 export default class api {
     client_id: string
     client_secret: string
+    model
     
     constructor(){
         this.client_id = config.CLIENT_ID;
         this.client_secret = config.CLIENT_SECRET;
+        this.model = Factory.get( config.DATA_BASE );
     }
 
     async getToken(){
@@ -39,17 +42,7 @@ export default class api {
         });
     }
 
-    generateRandomString(length) {
-        let text = '';
-        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      
-        for (let i = 0; i < length; i++) {
-          text += possible.charAt(Math.floor(Math.random() * possible.length));
-        }
-        return text;
-    }
-
-    getFormatRequest( method: string,url: string, headers: object,form={} ){
+    getFormatRequest( method: string,url: string, headers: object, form={} ){
         const query={ 
             method: method,
             url: url,
@@ -58,5 +51,18 @@ export default class api {
             json: true
         }
         return query;
+    }
+  
+    async saveRequest(ip: string, artist: string ){
+      const log = {
+        ip,
+        date: new Date().toLocaleDateString(),
+        artist
+      }
+      await this.model.uploadRequest(log);
+    }
+
+    async getHistorical(){
+      return await this.model.getHistorical();
     }
 }

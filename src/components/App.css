@@ -6,6 +6,11 @@
     width: 50%;
 }
 
+.error {
+    width: 90%;
+    margin: 0 auto;
+}
+
 
 .albums {
     /*  #6c757d */
