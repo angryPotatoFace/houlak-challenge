@@ -12,11 +12,9 @@ export default class RouterApp {
 
     start() {
         // GET
-            this.router.get('/', (req, res) => {  res.send('Hello Word!') });
-            this.router.get('/login', this.controller.login );
             this.router.get('/getToken', this.controller.getToken );
             this.router.get('/getAlbums/:id/:limit', this.controller.getAlbums );
-
+            this.router.get('/getHistorical', this.controller.getHistorical );
         // POST
             this.router.post('/searchArtist', this.controller.searchArtist );
             this.router.post('/getIdAlbumsByPopularity', this.controller.getIdAlbumsByPopularity );

@@ -8,16 +8,16 @@ import '../config'
 const app = express();
 const { PORT, BASE }  = config;
 
-
 app.use( express.json() );
 
-app.use(express.static(__dirname + '/public'))
-   .use(cors({
+app.use(cors({
       origin: 'http://localhost:3000'
-   }))
-   .use(cookieParser());
+}))
 
-app.get('/', (req, res) => res.send("*********** SERVIDOR INICIADO **************"));
+app.use(cookieParser());
+app.set('trust proxy', true);
+
+app.get('/', (req, res) => res.send("*********** SERVER STARTED **************"));
 app.use(BASE, new RouterApp().start());
 
 const server = app.listen(PORT, () => {

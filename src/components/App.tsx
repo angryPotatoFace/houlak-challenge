@@ -19,30 +19,16 @@ function App() {
       .required('Required'),
   });
 
-  const [artista , setArtista ] = useState({ id: '' });
+  const [artista , setArtista ] = useState({});
   const [albums, setAlbums] = useState([]); 
-
-  function sortByPopularity( idsPopularity: any, albCollection: any) {
-    const result = []
-    for (let i = 0; i < idsPopularity.length ; i++) {
-      let j = 0, pude= false;
-      
-      while( j < albCollection.length && !pude ) {
-          if( idsPopularity[i].id === albCollection[j].id ) {
-              result.push( {...albCollection[j], popularity: idsPopularity[i].popularity } );
-              pude = true;
-          }
-          j++;
-      }
-    }
-    return result;
-  }
+  const [haveAlbum, setHaveAlbum] = useState(false); 
+  
 
   return (
     <div className="App container mt-3 badge bg-secondary">
 
       {/* ----------------------- HEADER ----------------------------------- */}
-      <header className="App-header p-5 text-white container">
+      <header className="App-header p-5 text-white text-wrap">
             <h1 className='fw-bold' > Houlak - Challenge </h1>
             <p className='fs-6 pt-3' > This is applicaction that connect with the api of Spotify and you can have information about your favorites artists.</p>
       </header>
@@ -52,22 +38,21 @@ function App() {
 
       <div>
       <h3 className='fw-bold'> Spotify API </h3>
-      <p className='mt-3'>
+      <p className='mt-3 text-wrap'>
         With this API You can see the discography about your favorites artists
       </p>
       <Formik
         initialValues={ { artist: ''} }
         validationSchema ={ SignupSchema }
         onSubmit={ async ( values: Values, )=> {
-
             const data = await getArtist( values.artist );
             const albums = await getAlbums( data.id, 50);
             const ids = albums.map( (a: any) =>  a.id );
-            const idsPopularity = await getIdsAlbumsByPopularity(ids);
-            const sortData: any = sortByPopularity(idsPopularity, albums);
-        
+            const popularAlbums = await getIdsAlbumsByPopularity(ids);
+
+            setHaveAlbum( !popularAlbums.length );
             setArtista( data );
-            setAlbums ( sortData );
+            setAlbums ( popularAlbums );
           }
         }
 
@@ -89,6 +74,7 @@ function App() {
          </div>
 
          <button className='btn btn-success mt-3' type="submit">Search</button>
+  
        </Form>
       )}
       
@@ -99,41 +85,45 @@ function App() {
           
 
     <div className='mt-5'>
-          <h3> Lista </h3>
           {
             albums.length ? 
             albums.map( (alb: any, index) => {
                 if( alb.album_group === 'album' ){
                   return(
-                    <div className='albums' key={ index }> 
-                    
+                   <div key={ index }> 
+                      <h3 className='fw-bold pb-3'> Discography </h3>
+                      <div className='albums' > 
+
                       <div className='d-flex flex-column bd-highlight mb-3 justify-content-center '>
-    
-                          <div className='p-2 pt-4 container'>
+
+                          <div className='p-2 pt-4'>
                             <a className='text' href={ alb.external_urls.spotify } target='_blank' rel="noreferrer" >
-                              <img src={ alb.images[1].url } height={ alb.images[1].height} width={ alb.images[1].width} />
+                              <img className='container' src={ alb.images[1].url } height={ alb.images[1].height} width={ alb.images[1].width} />
                             </a>
                           </div>
-    
-                          <div className='p-2 container'>
+
+                          <div className='p-2 container text-wrap'>
                             <h5 className='fw-bold responsive-font-example' >{ alb.name}</h5>
                             <p className='album-description'>
                               <span className='text-capitalize'> { alb.type } </span>
-                                 •
+                                •
                               <span className='text-capitalize' >  { moment( alb.release_date ).format(" MMMM YYYY ")  } </span>
                                 •
                               <span className='text-capitalize'> { alb.total_tracks } Tracks </span>
                             </p>
                           </div>
-                   
+
                       </div>
-    
                     </div>
+                   </div>
                   )
                 }
             })
             :
-            <div> Todavia no hay artistas </div>
+             null
+          }
+          {
+            haveAlbum && <div className='alert alert-danger text-uppercase error' > no albums founded  </div>
           }
     </div> 
 
