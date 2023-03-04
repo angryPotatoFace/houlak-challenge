@@ -11,6 +11,11 @@
     margin: 0 auto;
 }
 
+.error-form {
+    width: 30%;
+    margin: auto;
+    margin-top: 1rem;
+}
 
 .albums {
     /*  #6c757d */
